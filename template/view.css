@@ -1,0 +1,17 @@
+#coverpage {
+	text-align: center;
+	height: 100%;
+	margin: 0;
+}
+
+div.dual {
+	text-indent: 0;
+    margin-bottom: 1em;
+}
+
+p.trans {
+	margin-left: 2em;
+    font-size: 0.9em;
+	line-height: 1.44em;
+	color: #E44;
+}
