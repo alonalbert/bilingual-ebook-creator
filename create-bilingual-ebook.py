@@ -84,13 +84,15 @@ if __name__ == '__main__':
   parser = argparse.ArgumentParser(description='Create a bilingual ebook.')
   parser.add_argument('--translate_to', help='Language to translate to', default='en', type=str)
   parser.add_argument('--skip_section', help='Don''t translate the first N sections', type=int, default=1)
-  parser.add_argument('--out', help='Output file name', type=str, default=None)
+  parser.add_argument('--out', help='Output file name', type=str, default='/tmp')
+  parser.add_argument('--tmp', help='Temp dir', type=str, default=None)
   parser.add_argument('--sentences_per_paragraph', help='Number of sentences in paragraph', type=int, default=2)
+  parser.add_argument('--cover_image', help='Cover image file', type=str)
   parser.add_argument('ebook_file', help='Ebook to translate', type=str)
 
   args = parser.parse_args()
 
-  tmp_dir = 'out'
+  tmp_dir = args.tmp
   meta_inf = os.path.join(tmp_dir, 'META-INF')
   if not os.path.exists(meta_inf):
     os.makedirs(meta_inf)
@@ -110,12 +112,17 @@ if __name__ == '__main__':
     content_xml = etree.parse(f)
 
   metadata = content_xml.xpath('/opf:package/opf:metadata', namespaces=OPDNS)[0]
-  cover_image_filename = metadata.xpath('./opf:meta[@name="cover"]/@content', namespaces=OPDNS)[0]
-  ebook_zip.extract(cover_image_filename, tmp_dir)
+  if args.cover_image is None:
+    cover_image_filename = metadata.xpath('./opf:meta[@name="cover"]/@content', namespaces=OPDNS)[0]
+    ebook_zip.extract(cover_image_filename, tmp_dir)
+  else:
+    shutil.copy(args.cover_image, tmp_dir)
+    cover_image_filename = os.path.basename(args.cover_image)
+
   ebook_zip.extract('toc.ncx', tmp_dir)
 
-  author = metadata.xpath('./dc:creator[@opf:role="aut"]/text()', namespaces=OPDNS)[0]
-  title = metadata.xpath('./dc:title/text()', namespaces=OPDNS)[0]
+  author = metadata.xpath('./dc:creator[@opf:role="aut"]/text()', namespaces=OPDNS)[0].encode('utf8')
+  title = metadata.xpath('./dc:title/text()', namespaces=OPDNS)[0].encode('utf8')
   language = metadata.xpath('./dc:language/text()', namespaces=OPDNS)[0]
 
   chapters = content_xml.xpath('/opf:package/opf:manifest/opf:item[@media-type="application/xhtml+xml"]/@href',
